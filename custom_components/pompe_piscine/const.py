@@ -1,1 +1,8 @@
 DOMAIN = "pompe_piscine"
+CONF_POMPE = "pompe_switch"
+CONF_TEMP_EAU = "temperature_eau"
+CONF_TEMP_EXT = "temperature_ext"
+CONF_METEO = "condition_meteo"
+CONF_TEMPS_CYCLE = "temps_cycle"
+CONF_TELEGRAM_USER = "telegram_user_id"
+CONF_SAISON = "saison"
