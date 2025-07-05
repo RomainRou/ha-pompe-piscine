@@ -1,18 +1,34 @@
-def setup_automation(hass, config):
-    pompe = config["pompe_switch"]
-    temp_eau_sensor = config["input_temperature_piscine"]
-    temp_ext_sensor = config["input_temperature_exterieure"]
-    meteo_entity = config["input_weather_entity"]
-    mode_entity = config["input_select_mode"]
-    saison_sensor = config["input_saison_sensor"]
-    hiver_mode = config["input_winter_mode"]
-    seuil_temp = config["input_seuil_temperature"]
-    duree_min_hiver = config["input_filtration_minimale_hiver"]
-    heure_cycle_matin = config["input_heure_cycle_matin"]
-    heure_cycle_apresmidi = config["input_heure_cycle_apresmidi"]
-    telegram_user = config["telegram_user"]
+from .const import (
+    CONF_POMPE,
+    CONF_TEMP_EAU,
+    CONF_TEMP_EXT,
+    CONF_METEO,
+    CONF_SAISON,
+    CONF_TEMPS_CYCLE,
+    CONF_TELEGRAM_USER,
+)
 
-    # Réglages spécifiques pour modes spéciaux (extrait du blueprint)
+from homeassistant.helpers.event import async_track_time_change
+from datetime import datetime
+
+def setup_automation(hass, config):
+    pompe = config[CONF_POMPE]
+    temp_eau_sensor = config[CONF_TEMP_EAU]
+    temp_ext_sensor = config[CONF_TEMP_EXT]
+    meteo_entity = config[CONF_METEO]
+    saison_sensor = config[CONF_SAISON]
+    temps_cycle = config[CONF_TEMPS_CYCLE]
+    telegram_user = config[CONF_TELEGRAM_USER]
+
+    # Ces clés doivent être ajoutées au const.py et au config flow si elles sont utilisées
+    mode_entity = config.get("input_select_mode")
+    hiver_mode = config.get("input_winter_mode")
+    seuil_temp = config.get("input_seuil_temperature")
+    duree_min_hiver = config.get("input_filtration_minimale_hiver")
+    heure_cycle_matin = config.get("input_heure_cycle_matin")
+    heure_cycle_apresmidi = config.get("input_heure_cycle_apresmidi")
+
+    # Réglages spécifiques pour modes spéciaux (valeurs par défaut)
     reglage_anti_calcaire_preventif = config.get("reglage_anti_calcaire_preventif", 11)
     reglage_anti_calcaire_curatif = config.get("reglage_anti_calcaire_curatif", 18)
     reglage_anti_algues_preventif = config.get("reglage_anti_algues_preventif", 5)
@@ -26,16 +42,13 @@ def setup_automation(hass, config):
     reglage_brome = config.get("reglage_brome", 18)
     reglage_sel = config.get("reglage_sel", 18)
 
-    from homeassistant.helpers.event import async_track_time_change
-    from datetime import datetime, time
-
     async def should_run():
         temp_eau = float(hass.states.get(temp_eau_sensor).state or 0)
         temp_ext = float(hass.states.get(temp_ext_sensor).state or 0)
-        mode = hass.states.get(mode_entity).state
-        saison = hass.states.get(saison_sensor).state
+        mode = hass.states.get(mode_entity).state if mode_entity else None
+        saison = hass.states.get(saison_sensor).state if saison_sensor else None
         meteo = hass.states.get(meteo_entity).state if hass.states.get(meteo_entity) else None
-        hiver = hass.states.get(hiver_mode).state == "on"
+        hiver = hass.states.get(hiver_mode).state == "on" if hiver_mode and hass.states.get(hiver_mode) else False
 
         # Ne pas filtrer si pluie détectée
         if meteo and "rain" in meteo.lower():
@@ -46,23 +59,21 @@ def setup_automation(hass, config):
             return True
 
         # Sinon filtrer si température eau > seuil
-        if temp_eau >= seuil_temp:
+        if seuil_temp is not None and temp_eau >= float(seuil_temp):
             return True
 
         return False
 
     async def calc_duree_cycle():
-        mode = hass.states.get(mode_entity).state
+        mode = hass.states.get(mode_entity).state if mode_entity else None
         temp_eau = float(hass.states.get(temp_eau_sensor).state or 0)
-        temp_ext = float(hass.states.get(temp_ext_sensor).state or 0)
-        hiver = hass.states.get(hiver_mode).state == "on"
+        hiver = hass.states.get(hiver_mode).state == "on" if hiver_mode and hass.states.get(hiver_mode) else False
 
-        if hiver:
+        if hiver and duree_min_hiver:
             # Durée minimale hiver en minutes
-            return duree_min_hiver * 60
+            return int(duree_min_hiver) * 60
 
         if mode == "Filtration normale" or mode == "Chlore lent":
-            # Durée = température / 2 (heures)
             duree = (temp_eau / 2) * 3600
         elif mode == "Anti-calcaire préventif":
             duree = reglage_anti_calcaire_preventif * 3600
@@ -105,7 +116,7 @@ def setup_automation(hass, config):
         await hass.services.async_call("switch", "turn_on", {"entity_id": pompe})
         # Envoi notification telegram
         await hass.services.async_call("notify", "telegram", {
-            "message": f"Cycle de filtration démarré en mode '{hass.states.get(mode_entity).state}' pour {round(duree / 60)} minutes.",
+            "message": f"Cycle de filtration démarré en mode '{hass.states.get(mode_entity).state if mode_entity else 'inconnu'}' pour {round(duree / 60)} minutes.",
             "target": telegram_user
         })
 
@@ -113,15 +124,20 @@ def setup_automation(hass, config):
         async def stop_cycle(_):
             await hass.services.async_call("switch", "turn_off", {"entity_id": pompe})
             await hass.services.async_call("notify", "telegram", {
-                "message": f"Cycle de filtration terminé.",
+                "message": "Cycle de filtration terminé.",
                 "target": telegram_user
             })
 
         hass.helpers.event.async_call_later(duree, stop_cycle)
 
-    # Planifie les cycles matin et après-midi
-    h_matin = datetime.strptime(heure_cycle_matin, "%H:%M:%S").time()
-    h_apresmidi = datetime.strptime(heure_cycle_apresmidi, "%H:%M:%S").time()
+    if heure_cycle_matin and heure_cycle_apresmidi:
+        try:
+            h_matin = datetime.strptime(heure_cycle_matin, "%H:%M:%S").time()
+            h_apresmidi = datetime.strptime(heure_cycle_apresmidi, "%H:%M:%S").time()
 
-    async_track_time_change(hass, start_cycle, hour=h_matin.hour, minute=h_matin.minute, second=h_matin.second)
-    async_track_time_change(hass, start_cycle, hour=h_apresmidi.hour, minute=h_apresmidi.minute, second=h_apresmidi.second)
+            async_track_time_change(hass, start_cycle, hour=h_matin.hour, minute=h_matin.minute, second=h_matin.second)
+            async_track_time_change(hass, start_cycle, hour=h_apresmidi.hour, minute=h_apresmidi.minute, second=h_apresmidi.second)
+        except Exception as e:
+            hass.logger.error(f"Erreur lors de la planification des cycles : {e}")
+    else:
+        hass.logger.warning("Heures de cycle matin ou après-midi non configurées.")
