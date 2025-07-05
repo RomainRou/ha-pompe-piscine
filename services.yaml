@@ -1,0 +1,21 @@
+set_mode:
+  name: Lancer un mode de filtration
+  description: Démarre une session de filtration selon le mode choisi
+  fields:
+    mode:
+      name: Mode de filtration
+      description: Nom du mode (ex: Filtration normale, Chlore choc, etc.)
+      required: true
+      example: "Filtration normale"
+      selector:
+        text:
+    duree:
+      name: Durée en heures
+      description: Durée du cycle si spécifique
+      required: false
+      example: 4
+      selector:
+        number:
+          min: 0.5
+          max: 24
+          step: 0.5

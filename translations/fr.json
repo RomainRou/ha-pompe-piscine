@@ -1,0 +1,17 @@
+{
+  "title": "Pompe Piscine Intelligente",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Configurer l'intégration pompe piscine",
+        "description": "Aucune configuration nécessaire. Le contrôle se fait via les services."
+      }
+    }
+  },
+  "services": {
+    "set_mode": {
+      "name": "Lancer un mode",
+      "description": "Démarre une session de filtration selon le mode"
+    }
+  }
+}

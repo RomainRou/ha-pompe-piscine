@@ -1,0 +1,10 @@
+{
+  "domain": "pompe_piscine",
+  "name": "Pompe Piscine Intelligente",
+  "version": "1.0.0",
+  "documentation": "https://github.com/ton-repo/pompe_piscine",
+  "issue_tracker": "https://github.com/ton-repo/pompe_piscine/issues",
+  "dependencies": [],
+  "codeowners": ["@ton-user"],
+  "requirements": []
+}
