@@ -3,7 +3,7 @@ from homeassistant import config_entries
 from homeassistant.helpers.selector import (
     EntitySelector,
     EntitySelectorConfig,
-    Selector,
+    TextSelector,
 )
 from .const import *
 
@@ -18,11 +18,11 @@ class PompePiscineConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=vol.Schema({
                 vol.Required(CONF_POMPE): EntitySelector(EntitySelectorConfig(domain="switch")),
-                vol.Required(CONF_TEMP_EAU): EntitySelector(EntitySelectorConfig(domain="sensor")),
-                vol.Required(CONF_TEMP_EXT): EntitySelector(EntitySelectorConfig(domain="sensor")),
+                vol.Required(CONF_TEMP_EAU): EntitySelector(EntitySelectorConfig(domain="sensor", device_class="temperature")),
+                vol.Required(CONF_TEMP_EXT): EntitySelector(EntitySelectorConfig(domain="sensor", device_class="temperature")),
                 vol.Required(CONF_METEO): EntitySelector(EntitySelectorConfig(domain="weather")),
+                vol.Required(CONF_SAISON): EntitySelector(EntitySelectorConfig(domain="sensor")), 
                 vol.Required(CONF_TEMPS_CYCLE): vol.All(vol.Coerce(int), vol.Range(min=1)),
-                vol.Required(CONF_TELEGRAM_USER): str,  # Could be a text input or selector if Telegram integration exists
-                vol.Required(CONF_SAISON): vol.In(["été", "hiver", "automne", "printemps"]),  # or use selector
+                vol.Required(CONF_TELEGRAM_USER): TextSelector(),
             })
         )
