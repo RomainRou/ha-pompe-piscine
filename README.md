@@ -1,3 +1,4 @@
+(en cours de devellopement non fonctionnel actuellement)
 # Pompe Piscine Intelligente
 
 Automatisation intelligente de la pompe de piscine basée sur :
