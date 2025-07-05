@@ -1,0 +1,9 @@
+automation:
+  - alias: "Filtration automatique piscine"
+    trigger:
+      - platform: time
+        at: "06:00:00"
+    action:
+      - service: pompe_piscine.set_mode
+        data:
+          mode: "Filtration normale"
