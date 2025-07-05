@@ -2,9 +2,9 @@
   "domain": "pompe_piscine",
   "name": "Pompe Piscine Intelligente",
   "version": "1.0.0",
-  "documentation": "https://github.com/ton-repo/pompe_piscine",
-  "issue_tracker": "https://github.com/ton-repo/pompe_piscine/issues",
+  "documentation": "https://github.com/RomainRou/ha-pompe-piscine",
   "dependencies": [],
-  "codeowners": ["@ton-user"],
-  "requirements": []
+  "codeowners": ["@RomainRou"],
+  "requirements": [],
+  "config_flow": true
 }
