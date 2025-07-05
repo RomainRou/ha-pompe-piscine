@@ -1,9 +1,14 @@
+from homeassistant.core import HomeAssistant
 from .const import DOMAIN
-from .automation_logic import setup_automation
 
-async def async_setup_entry(hass, entry):
-    setup_automation(hass, entry.data)
+def setup(hass: HomeAssistant, config: dict):
     return True
 
-async def async_unload_entry(hass, entry):
+async def async_setup_entry(hass, config_entry):
+    hass.async_create_task(
+        hass.config_entries.async_forward_entry_setup(config_entry, "automation")
+    )
     return True
+
+async def async_unload_entry(hass, config_entry):
+    return await hass.config_entries.async_forward_entry_unload(config_entry, "automation")
