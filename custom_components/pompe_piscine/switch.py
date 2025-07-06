@@ -1,32 +1,25 @@
 from homeassistant.components.switch import SwitchEntity
-from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from . import const
 
-DOMAIN = "pompe_piscine"
+async def async_setup_entry(hass, entry, async_add_entities):
+    data = entry.data
+    async_add_entities([PompeSwitch(hass, data[const.CONF_POMPE_SWITCH])])
 
-async def async_setup_entry(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    async_add_entities: AddEntitiesCallback,
-) -> None:
-    async_add_entities([PompePiscineSwitch()])
-
-
-class PompePiscineSwitch(SwitchEntity):
-    def __init__(self):
-        self._attr_is_on = False
-        self._attr_name = "Pompe Piscine"
+class PompeSwitch(SwitchEntity):
+    def __init__(self, hass, entity_id):
+        self._entity_id = entity_id
+        self._hass = hass
 
     @property
-    def is_on(self) -> bool:
-        return self._attr_is_on
+    def name(self):
+        return "Pompe Piscine"
 
-    def turn_on(self, **kwargs) -> None:
-        self._attr_is_on = True
-        self.schedule_update_ha_state()
+    @property
+    def is_on(self):
+        return self._hass.states.is_state(self._entity_id, "on")
 
-    def turn_off(self, **kwargs) -> None:
-        self._attr_is_on = False
-        self.schedule_update_ha_state()
+    async def async_turn_on(self, **kwargs):
+        await self._hass.services.async_call("switch", "turn_on", {"entity_id": self._entity_id})
+
+    async def async_turn_off(self, **kwargs):
+        await self._hass.services.async_call("switch", "turn_off", {"entity_id": self._entity_id})
