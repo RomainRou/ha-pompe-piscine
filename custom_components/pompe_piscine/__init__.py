@@ -1,33 +1,23 @@
-from homeassistant.config_entries import ConfigEntry
+"""Init integration"""
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.typing import ConfigType
-
+from homeassistant.config_entries import ConfigEntry
 from .const import DOMAIN
-from .coordinator import async_setup_entry as setup_coordinator
 
-
-async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
-    """Set up the Piscine Intelligente integration from YAML (non utilisé ici)."""
+async def async_setup(hass: HomeAssistant, config: dict):
     return True
 
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
+    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = entry.data
 
-async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Set up Piscine Intelligente from a config entry."""
-    # Initialisation du coordinator
-    await setup_coordinator(hass, entry)
-
-    # Écoute les modifications d'options pour redémarrer proprement
-    entry.async_on_unload(entry.add_update_listener(update_listener))
+    await hass.helpers.discovery.async_load_platform(entry, "switch")
+    await hass.helpers.discovery.async_load_platform(entry, "sensor")
+    
+    from .coordinator import PiscineCoordinator
+    coordinator = PiscineCoordinator(hass, entry)
+    hass.data[DOMAIN][entry.entry_id + "_coord"] = coordinator
 
     return True
 
-
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
-    """Unload a config entry."""
-    # Si tu ajoutes des plateformes (sensor, switch...), décharge-les ici aussi
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+    hass.data[DOMAIN].pop(entry.entry_id + "_coord", None)
     return True
-
-
-async def update_listener(hass: HomeAssistant, entry: ConfigEntry):
-    """Handle options update."""
-    await hass.config_entries.async_reload(entry.entry_id)
