@@ -5,9 +5,9 @@
       "user": {
         "title": "Configurer la pompe piscine",
         "data": {
-          "pompe_switch": "Entité du switch pompe",
-          "sensor_temp": "Température piscine",
-          "sensor_temp_ext": "Température extérieure",
+          "pompe_switch": "Switch de la pompe piscine",
+          "sensor_temp": "Capteur température piscine",
+          "sensor_temp_ext": "Capteur température extérieure",
           "sensor_saison": "Capteur saison",
           "weather_entity": "Entité météo",
           "mode_select": "Sélecteur de modes",
