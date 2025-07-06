@@ -1,2 +1,2 @@
-DOMAIN = "piscine_intelligente"
-DEFAULT_NAME = "Piscine Intelligente"
+DOMAIN = "pompe_piscine"
+DEFAULT_NAME = "Pompe Piscine Intelligente"
