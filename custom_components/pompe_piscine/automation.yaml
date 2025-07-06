@@ -1,0 +1,63 @@
+alias: "Piscine Intelligente – cycle auto"
+description: "Démarre la filtration selon le mode choisi"
+trigger:
+  - platform: state
+    entity_id: input_select.mode_filtration
+  - platform: time
+    at: input_datetime.cycle_debut
+
+condition: []
+
+action:
+  - service: input_boolean.turn_on
+    entity_id: input_boolean.cycle_en_cours
+
+  - service: switch.turn_on
+    entity_id: switch.pompe
+
+  - service: input_datetime.set_datetime
+    data:
+      entity_id: input_datetime.cycle_debut
+      timestamp: "{{ now().timestamp() }}"
+
+  - service: input_number.set_value
+    data:
+      entity_id: input_number.duree_cycle
+      value: >
+        {% set mode = states('input_select.mode_filtration') %}
+        {% if mode == "Anti-calcaire préventif" %}
+          {{ states('input_number.reglage_anti_calcaire_preventif') }}
+        {% elif mode == "Anti-calcaire curatif" %}
+          {{ states('input_number.reglage_anti_calcaire_curatif') }}
+        {% elif mode == "Anti-algues préventif" %}
+          {{ states('input_number.reglage_anti_algues_preventif') }}
+        {% elif mode == "Anti-algues curatif" %}
+          {{ states('input_number.reglage_anti_algues_curatif') }}
+        {% elif mode == "Chlore choc" %}
+          {{ states('input_number.reglage_chlore_choc') }}
+        {% elif mode == "Oxygène actif" %}
+          {{ states('input_number.reglage_oxygene_actif') }}
+        {% elif mode == "Floculant" %}
+          {{ states('input_number.reglage_floculant') }}
+        {% elif mode == "pH+ ou pH-" %}
+          {{ states('input_number.reglage_ph') }}
+        {% elif mode == "Algicide longue durée" %}
+          {{ states('input_number.reglage_algicide_ld') }}
+        {% elif mode == "Traitement multi‑actions" %}
+          {{ states('input_number.reglage_multi_actions') }}
+        {% elif mode == "Brome" %}
+          {{ states('input_number.reglage_brome') }}
+        {% elif mode == "Électrolyse au sel" %}
+          {{ states('input_number.reglage_electrolyse_sel') }}
+        {% else %}
+          360  # filtration normale par défaut : 6h
+        {% endif %}
+
+  - delay:
+      seconds: "{{ states('input_number.duree_cycle') | int }}"
+
+  - service: switch.turn_off
+    entity_id: switch.pompe
+
+  - service: input_boolean.turn_off
+    entity_id: input_boolean.cycle_en_cours
