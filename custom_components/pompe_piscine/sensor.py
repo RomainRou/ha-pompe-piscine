@@ -1,58 +1,40 @@
 from homeassistant.components.sensor import SensorEntity
-from . import const
+from .const import DOMAIN
 
 async def async_setup_entry(hass, entry, async_add_entities):
-    data = entry.data
     async_add_entities([
-        CycleEnCoursSensor(), CycleNomSensor(),
-        DureeTotaleSensor(), TempsRestantSensor()
-    ])
+        CycleEnCours(), CycleNom(), DureeTotale(), TempsRestant()
+    ], True)
 
-class BaseSensor(SensorEntity):
+class Base(SensorEntity):
     @property
     def available(self):
         return True
 
-class CycleEnCoursSensor(BaseSensor):
+class CycleEnCours(Base):
     @property
-    def unique_id(self):
-        return "piscine_cycle_en_cours"
-    @property
-    def name(self):
-        return "Cycle en cours"
+    def name(self): return "Cycle en cours"
     @property
     def state(self):
-        return self.hass.states.get("input_boolean.piscine_cycle_en_cours").state.title()
+        return self.hass.states.get("input_boolean.piscine_cycle_en_cours", {}).state.title()
 
-class CycleNomSensor(BaseSensor):
+class CycleNom(Base):
     @property
-    def unique_id(self):
-        return "piscine_cycle_nom"
-    @property
-    def name(self):
-        return "Nom cycle"
+    def name(self): return "Nom cycle"
     @property
     def state(self):
-        return self.hass.states.get("input_select.piscine_mode").state or "Aucun"
+        return self.hass.states.get("input_select.piscine_mode", {}).state or "Aucun"
 
-class DureeTotaleSensor(BaseSensor):
+class DureeTotale(Base):
     @property
-    def unique_id(self):
-        return "piscine_duree_cycle"
-    @property
-    def name(self):
-        return "Durée cycle (h:mm)"
+    def name(self): return "Durée cycle"
     @property
     def state(self):
-        return self.hass.states.get("sensor._durée_total").state or "0:00"
+        return self.hass.states.get("sensor.piscine_duree_secondes", {}).state or "0"
 
-class TempsRestantSensor(BaseSensor):
+class TempsRestant(Base):
     @property
-    def unique_id(self):
-        return "piscine_temps_restant"
-    @property
-    def name(self):
-        return "Temps restant (h:mm)"
+    def name(self): return "Temps restant"
     @property
     def state(self):
-        return self.hass.states.get("sensor._temps_restant").state or "0:00"
+        return self.hass.states.get("sensor.piscine_temps_restant_secondes", {}).state or "0"
