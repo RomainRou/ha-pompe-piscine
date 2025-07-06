@@ -1,4 +1,4 @@
-DOMAIN = "pompe_piscine"
+DOMAIN = "piscine_intelligente"
 CONF_POMPE_SWITCH = "pompe_switch"
 CONF_SENSOR_TEMP = "sensor_temp"
 CONF_SENSOR_TEMP_EXT = "sensor_temp_ext"
