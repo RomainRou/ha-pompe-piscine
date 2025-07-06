@@ -1,22 +1,19 @@
 {
+  "title": "Pompe Piscine Intelligente",
   "config": {
     "step": {
       "user": {
-        "title": "Configurer la Pompe Piscine",
-        "description": "Veuillez entrer les informations de connexion.",
+        "title": "Configurer la pompe piscine",
         "data": {
-          "host": "Adresse IP",
-          "username": "Nom d’utilisateur",
-          "password": "Mot de passe"
+          "pompe_switch": "Entité du switch pompe",
+          "sensor_temp": "Température piscine",
+          "sensor_temp_ext": "Température extérieure",
+          "sensor_saison": "Capteur saison",
+          "weather_entity": "Entité météo",
+          "mode_select": "Sélecteur de modes",
+          "telegram_user": "ID utilisateur Telegram"
         }
       }
-    },
-    "error": {
-      "cannot_connect": "Connexion impossible",
-      "invalid_auth": "Authentification invalide"
-    },
-    "abort": {
-      "already_configured": "Cette pompe est déjà configurée"
     }
   }
 }
