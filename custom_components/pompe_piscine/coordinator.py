@@ -1,52 +1,36 @@
-import asyncio
-import logging
-from datetime import datetime, timedelta
+import asyncio, datetime
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
+from homeassistant.core import HomeAssistant, callback
+from . import const
 
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.event import async_track_time_interval
-from .helpers import async_validate_helpers
+class PiscineCoordinator(DataUpdateCoordinator):
+    def __init__(self, hass: HomeAssistant, config):
+        super().__init__(hass, _LOGGER, name="Pompe Piscine", update_interval=None)
+        self.config = config
+        hass.loop.create_task(self._init_entities())
 
-_LOGGER = logging.getLogger(__name__)
+    async def _init_entities(self):
+        ent = self.config
+        # creation dynamic of inputs (datetime, number, boolean)
+        # example:
+        await self.hass.services.async_call(
+            "input_datetime", "set_datetime",
+            {"entity_id": f"input_datetime.piscine_heure_matin", "time": "06:00:00"}
+        )
+        # similar for apres-midi, input_numbers for modes, input_boolean.piscine_cycle_en_cours
 
+        # schedule next runs
+        self._schedule_cycle("matin", ent)
+        self._schedule_cycle("apresmidi", ent)
 
-async def async_setup_entry(hass: HomeAssistant, entry):
-    """Configure l'intégration Piscine Intelligente."""
+    def _schedule_cycle(self, period: str, ent: dict):
+        # compute next datetime from input_datetime...
+        # then use hass.helpers.event.async_call_later to plan run_cycle
 
-    is_valid = await async_validate_helpers(hass)
-    if not is_valid:
-        _LOGGER.error("Des entités requises sont manquantes. L'intégration ne peut pas être chargée.")
-        return False
+    async def async_update(self):
+        # update sensor temps, saison, weather state...
+        pass
 
-    data = entry.options  # Options contient les entités choisies
-
-    hass.async_create_task(startup(hass, data))
-    return True
-
-
-async def startup(hass: HomeAssistant, data: dict):
-    """Surveillance du cycle de filtration."""
-
-    switch_pompe = data.get("switch_pompe")
-
-    async def check_cycle(_now):
-        en_cours = hass.states.get("input_boolean.cycle_en_cours")
-        if en_cours and en_cours.state == "on":
-            duree = hass.states.get("input_number.duree_cycle")
-            debut = hass.states.get("input_datetime.cycle_debut")
-            if debut and duree:
-                try:
-                    debut_dt = datetime.strptime(debut.state, "%Y-%m-%d %H:%M:%S")
-                    fin = debut_dt + timedelta(seconds=int(float(duree.state)))
-                    if datetime.now() >= fin:
-                        _LOGGER.info("Cycle terminé. Arrêt de la pompe.")
-                        await hass.services.async_call("switch", "turn_off", {
-                            "entity_id": switch_pompe
-                        })
-                        await hass.services.async_call("input_boolean", "turn_off", {
-                            "entity_id": "input_boolean.cycle_en_cours"
-                        })
-                except Exception as e:
-                    _LOGGER.error(f"[Piscine] Erreur de parsing datetime: {e}")
-
-    # Vérifie toutes les minutes si le cycle doit être arrêté
-    async_track_time_interval(hass, check_cycle, timedelta(minutes=1))
+    async def run_cycle(self):
+        # logic: compute duration, turn on/off switch, send Telegram
+        pass
