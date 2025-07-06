@@ -32,6 +32,9 @@ class PiscineConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             vol.Required("weather_entity"): EntitySelector(
                 EntitySelectorConfig(domain="weather")
             ),
+            vol.Required("input_select_mode"): EntitySelector(
+                EntitySelectorConfig(domain="input_select")
+            ),
             vol.Required("telegram_user"): TextSelector(
                 TextSelectorConfig()
             )
@@ -39,7 +42,6 @@ class PiscineConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(step_id="user", data_schema=schema)
 
-    # 👇 Options : pour modifier après installation
     async def async_step_options(self, user_input=None):
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
@@ -61,6 +63,9 @@ class PiscineConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             ),
             vol.Required("weather_entity", default=options.get("weather_entity", "")): EntitySelector(
                 EntitySelectorConfig(domain="weather")
+            ),
+            vol.Required("input_select_mode", default=options.get("input_select_mode", "")): EntitySelector(
+                EntitySelectorConfig(domain="input_select")
             ),
             vol.Required("telegram_user", default=options.get("telegram_user", "")): TextSelector(
                 TextSelectorConfig()
