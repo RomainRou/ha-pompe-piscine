@@ -6,3 +6,7 @@ async def async_setup(hass, config):
 async def async_setup_entry(hass, entry):
     """Méthode requise par Home Assistant si une config_entry existe."""
     return True
+DOMAIN = "pompe_piscine"
+
+async def async_setup(hass, config):
+    return True
