@@ -1,9 +1,22 @@
-start_cycle:
-  description: "Démarre un cycle de filtration manuel"
+start_filtration:
+  description: Lancer un cycle de filtration piscine
   fields:
-    entity_id:
-      description: "L'entité de la pompe"
-      example: "switch.pompe"
+    pompe:
+      description: L'entité switch de la pompe
+      example: "switch.pompe_piscine"
+      required: true
       selector:
         entity:
           domain: switch
+    mode:
+      description: Mode de filtration (normal, chlore, test…)
+      example: "chlore_choc"
+    duree:
+      description: Durée en secondes (si manuelle)
+      example: 7200
+      required: false
+      selector:
+        number:
+          min: 300
+          max: 86400
+          unit_of_measurement: s
